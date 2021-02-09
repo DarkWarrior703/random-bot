@@ -2,13 +2,12 @@ package youtube
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/DarkWarrior703/random-bot/utility"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -18,15 +17,18 @@ var running = false
 type Query struct {
 	ID         string
 	GuildID    string
-	listofopts []string
+	listofopts [][]string
 }
 
 var (
 	listOfQ = []Query{}
 )
 
-var queue []string
-var stopChannel chan bool
+var (
+	queue       [][]string
+	length      int = 0
+	stopChannel chan bool
+)
 
 // QueryUserYtb asks user about what opts
 func QueryUserYtb(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -34,9 +36,6 @@ func QueryUserYtb(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	if m.Author.Bot {
-		return
-	}
-	if m.Content[0] != '-' {
 		return
 	}
 	list := strings.Split(m.Content, " ")
@@ -53,19 +52,14 @@ func QueryUserYtb(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	url := "https://www.youtube.com/results?search_query=" + query + "&sp=EgIQAQ%253D%253D"
-	resp, err := http.Get(url)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := utility.GetData(url)
 	if err != nil {
 		return
 	}
 	reg := regexp.MustCompile("(/watch\\?v=.{11})|(title\":{\"runs\":[[]{\"text\":\").+?\"")
 	q := reg.FindAllString(string(body), -1)
 	ques := "What video do you want?\n"
-	listopt := []string{}
+	listopt := [][]string{}
 	size := 10
 	if len(q) < 10 {
 		size = len(q)
@@ -81,12 +75,11 @@ func QueryUserYtb(s *discordgo.Session, m *discordgo.MessageCreate) {
 		ques += fmt.Sprintf("%d. ", i/2+1)
 		ques += title
 		ques += "\n"
-		listopt = append(listopt, q[i+1])
+		listopt = append(listopt, []string{title, q[i+1]})
 		i += 2
 	}
 	s.ChannelMessageSend(m.ChannelID, ques)
 	listOfQ = append(listOfQ, Query{m.Author.ID, m.GuildID, listopt})
-
 }
 
 // HandleChoice gets the choice of user
@@ -107,17 +100,19 @@ func HandleChoice(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if (list[0] != "-play") && (list[0] != "-p") {
 		return
 	}
-	fmt.Println(m.Content)
-	choice, err := strconv.ParseFloat(list[1], 64)
+	choice, err := strconv.ParseFloat(strings.Join(list[1:], "+"), 64)
 	if err != nil {
 		return
 	}
+	fmt.Println("Hi")
+	title := ""
 	id := ""
 	for i, q := range listOfQ {
 		if q.ID == m.Author.ID && q.GuildID == m.GuildID {
 			if int(choice) <= len(q.listofopts) {
 				c := q.listofopts[int(choice)-1]
-				id = c[9:]
+				title = c[0]
+				id = c[1][9:]
 				listOfQ = remove(listOfQ, i)
 				break
 			} else {
@@ -131,9 +126,10 @@ func HandleChoice(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	filename := "D:\\tmp\\" + id + ".m4a"
-	queue = append(queue, filename)
-	fmt.Println(queue[0])
+	queue = append(queue, []string{title, filename})
+	length++
 	if !running {
+		fmt.Println("WTF!")
 		err = playSong(s, m)
 		if err != nil {
 			fmt.Println(err)
@@ -155,15 +151,12 @@ func isNumeric(s string) bool {
 }
 
 func playSong(s *discordgo.Session, m *discordgo.MessageCreate) error {
-	fmt.Println("Hello")
 	c, err := s.State.Channel(m.ChannelID)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	g, err := s.State.Guild(c.GuildID)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	ch := ""
@@ -174,29 +167,36 @@ func playSong(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	}
 	vc, err := s.ChannelVoiceJoin(g.ID, ch, false, true)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	filename := queue[0]
+	title := queue[0][0]
+	filename := queue[0][1]
 	queue = removeQuery(queue)
 	stopChannel := make(chan bool)
 	running = true
+	s.ChannelMessageSend(m.ChannelID, "```\nNow playing "+title+"```\n")
 	playAudioFile(vc, filename, stopChannel)
+	vc.Speaking(false)
 	running = false
-	playNextSong(vc)
+	playNextSong(s, m, vc)
 	return nil
 }
 
-func playNextSong(vc *discordgo.VoiceConnection) {
-	if len(queue) == 0 {
+func playNextSong(s *discordgo.Session, m *discordgo.MessageCreate, vc *discordgo.VoiceConnection) {
+	fmt.Println(length)
+	if length == 0 {
+		vc.Disconnect()
 		return
 	}
-	filename := queue[0]
+	title := queue[0][0]
+	filename := queue[0][1]
 	queue = removeQuery(queue)
 	stopChannel := make(chan bool)
+	running = true
+	s.ChannelMessageSend(m.ChannelID, "```\nNow playing "+title+"```\n")
 	playAudioFile(vc, filename, stopChannel)
 	running = false
-	playNextSong(vc)
+	playNextSong(s, m, vc)
 	return
 }
 
@@ -210,11 +210,12 @@ func remove(s []Query, i int) []Query {
 	return s[:len(s)-1]
 }
 
-func removeQuery(s []string) []string {
+func removeQuery(s [][]string) [][]string {
+	length--
 	if len(s) > 1 {
 		return s[1:]
 	}
-	return []string{}
+	return [][]string{}
 }
 
 // SkipHandler handles -skip command
@@ -247,6 +248,7 @@ func ClearQueueHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	if list[0] == "-clearqueue" {
-		queue = []string{}
+		queue = [][]string{}
+		length = 0
 	}
 }

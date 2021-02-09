@@ -6,9 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/DarkWarrior703/anime-bot/anime"
-	"github.com/DarkWarrior703/anime-bot/jokes"
-	"github.com/DarkWarrior703/anime-bot/youtube"
+	"github.com/DarkWarrior703/random-bot/animals"
+	"github.com/DarkWarrior703/random-bot/jokes"
+	"github.com/DarkWarrior703/random-bot/misc"
+	"github.com/DarkWarrior703/random-bot/weeb"
+	"github.com/DarkWarrior703/random-bot/youtube"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -27,10 +29,16 @@ func main() {
 	dg.AddHandler(youtube.QueryUserYtb)
 	dg.AddHandler(youtube.HandleChoice)
 	dg.AddHandler(youtube.SkipHandler)
-	dg.AddHandler(anime.AnimeHandler)
-	dg.AddHandler(anime.MangaHandler)
-	dg.AddHandler(anime.ImageHandler)
+	dg.AddHandler(youtube.ClearQueueHandler)
+	dg.AddHandler(weeb.AnimeHandler)
+	dg.AddHandler(weeb.MangaHandler)
+	dg.AddHandler(weeb.ImageHandler)
+	dg.AddHandler(weeb.QuoteHandler)
 	dg.AddHandler(jokes.KanyeHandler)
+	dg.AddHandler(animals.DogHandler)
+	dg.AddHandler(animals.CatHandler)
+	dg.AddHandler(animals.FoxHandler)
+	dg.AddHandler(misc.ShortenUrlsHandler)
 
 	err = dg.Open()
 	if err != nil {

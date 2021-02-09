@@ -1,9 +1,5 @@
 github.com/DarkWarrior703/anime-cli v0.0.0-20210208143631-ae455e8353fa h1:kY5vbW/qo1F0EgCffvJhQkM/aBUfguGjXCDrrP9+2C8=
 github.com/DarkWarrior703/anime-cli v0.0.0-20210208143631-ae455e8353fa/go.mod h1:IylgS6wdw86LBimqFg3FgqMwyiCaKplhm5m0YOYzJu4=
-github.com/Te-cho/go-youtube-dl v0.0.0-20170720135957-9ca8bafc4268 h1:q9Lmt/n0RQxZ5xLm7WPnjvG16e4q4j4wHeFBtRrqr5o=
-github.com/Te-cho/go-youtube-dl v0.0.0-20170720135957-9ca8bafc4268/go.mod h1:zKQz5KniDqFPmxWJV9jEhb8fad7sMmfge0gyemryY7o=
-github.com/bwmarrin/dgvoice v0.0.0-20170706020935-3c939eca8b2f h1:8uSq7GLWVH4p4UV6zhP4rGQRt6Fv/WEg8w560Fiu7ls=
-github.com/bwmarrin/dgvoice v0.0.0-20170706020935-3c939eca8b2f/go.mod h1:DT3heoMAQGrOExZ3Rb3TBOQ4Bm+wD4H48KFnt1YfLoQ=
 github.com/bwmarrin/discordgo v0.23.2 h1:BzrtTktixGHIu9Tt7dEE6diysEF9HWnXeHuoJEt2fH4=
 github.com/bwmarrin/discordgo v0.23.2/go.mod h1:c1WtWUGN6nREDmzIpyTp/iD3VYt4Fpx+bVyfBG7JE+M=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=

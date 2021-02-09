@@ -1,14 +1,13 @@
-package anime
+package weeb
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strings"
 
 	"github.com/DarkWarrior703/anime-cli/anime"
 	"github.com/DarkWarrior703/anime-cli/manga"
+	"github.com/DarkWarrior703/random-bot/utility"
 	"github.com/bwmarrin/discordgo"
 	"github.com/olekukonko/tablewriter"
 )
@@ -105,12 +104,7 @@ func ImageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	query := strings.Join(list[1:], "+")
 	url := "https://api.jikan.moe/v3/search/anime?q=" + query
-	resp, err := http.Get(url)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := utility.GetData(url)
 	if err != nil {
 		return
 	}
@@ -120,4 +114,35 @@ func ImageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	s.ChannelMessageSend(m.ChannelID, tmpdata.Results[0].ImageURL)
+}
+
+// QuoteHandler handles -animequote command
+func QuoteHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+	if m.Author.Bot {
+		return
+	}
+	list := strings.Split(m.Content, " ")
+	if list[0] != "-animequote" {
+		return
+	}
+	body, err := utility.GetData("https://animechanapi.xyz/api/quotes/random")
+	if err != nil {
+		return
+	}
+	type tmp struct {
+		Data []struct {
+			Quote     string `json:"quote"`
+			Character string `json:"character"`
+			Anime     string `json:"anime"`
+		} `json:"data"`
+	}
+	tmpdata := &tmp{}
+	err = json.Unmarshal(body, tmpdata)
+	if err != nil {
+		return
+	}
+	s.ChannelMessageSend(m.ChannelID, tmpdata.Data[0].Character+" from `"+tmpdata.Data[0].Anime+"` said: "+tmpdata.Data[0].Quote)
 }

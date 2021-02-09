@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This is not my code
  * It's bwmarrin's code
- *
+ * I downloaded it, just to make some small changes
  */
 
 package youtube
@@ -12,6 +12,7 @@ import (
 	"io"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/bwmarrin/discordgo"
@@ -151,6 +152,9 @@ func playAudioFile(v *discordgo.VoiceConnection, filename string, stop <-chan bo
 		case send <- audiobuf:
 		case <-close:
 			return
+		}
+		if running == false {
+			ffmpegbuf = bufio.NewReader(strings.NewReader(""))
 		}
 	}
 }
