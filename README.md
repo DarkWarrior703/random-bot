@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Random bot
-=======
 # Random bot
 
 It's just a stupid Discord bot written in Go. It has a lot of commands, but, to be honest, most of them are bad implemented. 
@@ -72,4 +69,3 @@ displays a fox image
 gets a shortened URL of args
 
 ## Licensed under Unlicensed
->>>>>>> discord
